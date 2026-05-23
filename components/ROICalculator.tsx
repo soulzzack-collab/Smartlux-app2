@@ -35,7 +35,7 @@ function useAnimatedNumber(value: number, duration = 500) {
   return display;
 }
 
-function Slider({ value, min, max, step=1, onChange, color, label, subleft, subright, suffix="%" }: {
+function Slider({ value, min, max, step=1, onChange, color, label, subleft, subright, suffix="%", prefix="" }: {
   value: number;
   min: number;
   max: number;
@@ -46,13 +46,15 @@ function Slider({ value, min, max, step=1, onChange, color, label, subleft, subr
   subleft: string;
   subright: string;
   suffix?: string;
+  prefix?: string;
 }) {
   const pct = ((value - min) / (max - min)) * 100;
+  const displayValue = suffix === "" && prefix === "" ? `R ${value.toLocaleString("en-ZA")}` : `${prefix}${value.toLocaleString("en-ZA")}${suffix}`;
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,alignItems:"center"}}>
         <span style={{fontSize:13,color:"#8b949e"}}>{label}</span>
-        <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color}}>{value}{suffix}</span>
+        <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color}}>{displayValue}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={e=>onChange(Number(e.target.value))}
         style={{width:"100%",height:4,borderRadius:2,outline:"none",cursor:"pointer",appearance:"none",WebkitAppearance:"none",
@@ -72,6 +74,9 @@ export default function ROICalculator() {
   const [inefficiency, setInefficiency] = useState(20);
   const [recovery, setRecovery] = useState(55);
   const [payback, setPayback] = useState(36);
+  const [investment, setInvestment] = useState(150000);
+  const [investmentInput, setInvestmentInput] = useState("150,000");
+  const [investmentFocused, setInvestmentFocused] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const ind = INDUSTRIES[industryKey];
 
@@ -84,17 +89,18 @@ export default function ROICalculator() {
   const wastedMonthly = monthly * (inefficiency / 100);
   const recoverableMonthly = wastedMonthly * (recovery / 100);
   const recoverableAnnual = recoverableMonthly * 12;
-  const investmentEstimate = recoverableAnnual * (payback / 12);
-  const roiPct = investmentEstimate > 0 ? Math.round((recoverableAnnual / investmentEstimate) * 100) : 0;
+  const roiPct = investment > 0 ? Math.round((recoverableAnnual / investment) * 100) : 0;
+  const calculatedPaybackMonths = recoverableMonthly > 0 ? Math.round(investment / recoverableMonthly) : 0;
 
   const animRM = useAnimatedNumber(Math.round(recoverableMonthly));
   const animRA = useAnimatedNumber(Math.round(recoverableAnnual));
   const animW  = useAnimatedNumber(Math.round(wastedMonthly));
-  const animI  = useAnimatedNumber(Math.round(investmentEstimate));
+  const animI  = useAnimatedNumber(Math.round(investment));
   const animRoi= useAnimatedNumber(roiPct);
+  const animPayback = useAnimatedNumber(calculatedPaybackMonths);
 
-  const paybackLabel = payback === 12 ? "1 yr" : `${(payback/12).toFixed(1)} yrs`;
-  const paybackRange = payback <= 24 ? "1–2" : payback <= 48 ? "2–4" : "2–6";
+  const paybackLabel = calculatedPaybackMonths <= 12 ? `${calculatedPaybackMonths} mo` : calculatedPaybackMonths < 24 ? `${(calculatedPaybackMonths/12).toFixed(1)} yrs` : `${Math.round(calculatedPaybackMonths/12)} yrs`;
+  const paybackRange = calculatedPaybackMonths <= 24 ? "1-2" : calculatedPaybackMonths <= 48 ? "2-4" : "2-6";
 
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
@@ -206,8 +212,17 @@ export default function ROICalculator() {
 
             <div className="card">
               <div style={{marginBottom:14}}><span className="tag">Step 4</span></div>
-              <Slider label="Target payback period" value={payback} min={12} max={84} step={6} onChange={setPayback} color="#c9a84c" subleft="1 year" subright="7 years" suffix=" mo"/>
-              <div style={{marginTop:6,fontSize:12,color:"#444d56",textAlign:"right"}}>{paybackLabel}</div>
+              <label style={{fontSize:13,color:"#8b949e",display:"block",marginBottom:8}}>Initial investment / Budget</label>
+              <div style={{position:"relative"}}>
+                <span style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",fontSize:19,fontFamily:"'Playfair Display',serif",fontWeight:700,color:"#c9a84c",pointerEvents:"none"}}>R</span>
+                <input style={{background:"#21262d",border:"1px solid #30363d",borderRadius:8,color:"#e8eaed",fontSize:19,fontFamily:"'Playfair Display',serif",fontWeight:700,padding:"11px 13px 11px 32px",width:"100%",outline:"none"}}
+                  value={investmentFocused?investmentInput:investment.toLocaleString("en-ZA")}
+                  onChange={e=>{setInvestmentInput(e.target.value);const n=parseFloat(e.target.value.replace(/[^0-9.]/g,""));if(!isNaN(n)&&n>=0)setInvestment(n);}}
+                  onFocus={()=>{setInvestmentFocused(true);setInvestmentInput(String(investment));}}
+                  onBlur={()=>setInvestmentFocused(false)} placeholder="150,000"/>
+              </div>
+              <Slider label="Adjust investment" value={investment} min={50000} max={1000000} step={10000} onChange={setInvestment} color="#c9a84c" subleft="R 50k" subright="R 1M" suffix=""/>
+              <div style={{marginTop:6,fontSize:12,color:"#c9a84c",textAlign:"right"}}>Payback: {paybackLabel}</div>
             </div>
           </div>
 
@@ -258,7 +273,7 @@ export default function ROICalculator() {
               </div>
             </div>
 
-            <button className="reset-btn" onClick={()=>{setInefficiency(ind.inefficiencyDefault);setRecovery(ind.recoveryDefault);setPayback(ind.paybackDefault);setMonthly(50000);setInputVal("50,000");}}>
+            <button className="reset-btn" onClick={()=>{setInefficiency(ind.inefficiencyDefault);setRecovery(ind.recoveryDefault);setPayback(ind.paybackDefault);setMonthly(50000);setInputVal("50,000");setInvestment(150000);setInvestmentInput("150,000");}}>
               Reset to {ind.label} defaults
             </button>
           </div>
