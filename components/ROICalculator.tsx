@@ -78,6 +78,9 @@ export default function ROICalculator() {
   const [investmentInput, setInvestmentInput] = useState("150,000");
   const [investmentFocused, setInvestmentFocused] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"sales" | "prospect">("sales");
+  const [viewDropOpen, setViewDropOpen] = useState(false);
+  const isProspect = viewMode === "prospect";
   const ind = INDUSTRIES[industryKey];
 
   useEffect(() => {
@@ -144,8 +147,28 @@ export default function ROICalculator() {
           </div>
           <div style={{fontSize:11,color:"#8b949e",letterSpacing:"1.5px",textTransform:"uppercase",marginTop:2}}>ROI Discovery Calculator</div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span className="pulse"/><span style={{fontSize:12,color:"#8b949e"}}>Live calculation</span>
+        <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+          <div style={{position:"relative"}}>
+            <button onClick={()=>setViewDropOpen(o=>!o)} style={{background:isProspect?"rgba(64,168,196,0.12)":"#161b22",border:`1px solid ${viewDropOpen?"#40a8c4":"#30363d"}`,borderRadius:8,padding:"8px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,color:"#e8eaed",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:600}}>
+              <span style={{color:isProspect?"#40a8c4":"#8b949e"}}>{isProspect?"Prospect View":"Sales View"}</span>
+              <span style={{color:"#40a8c4",fontSize:12,transform:viewDropOpen?"rotate(180deg)":"none",transition:"transform 0.2s"}}>&#9662;</span>
+            </button>
+            {viewDropOpen && (
+              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#161b22",border:"1px solid #30363d",borderRadius:10,padding:8,zIndex:100,minWidth:200,boxShadow:"0 16px 40px rgba(0,0,0,0.5)"}}>
+                <div className={`drop-item${!isProspect?" active":""}`} onClick={()=>{setViewMode("sales");setViewDropOpen(false);}}>
+                  <span>Sales View</span>
+                  {!isProspect&&<span style={{marginLeft:"auto",color:"#40a8c4",fontSize:12}}>&#10003;</span>}
+                </div>
+                <div className={`drop-item${isProspect?" active":""}`} onClick={()=>{setViewMode("prospect");setViewDropOpen(false);}}>
+                  <span>Prospect View</span>
+                  {isProspect&&<span style={{marginLeft:"auto",color:"#40a8c4",fontSize:12}}>&#10003;</span>}
+                </div>
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span className="pulse"/><span style={{fontSize:12,color:"#8b949e"}}>Live calculation</span>
+          </div>
         </div>
       </div>
 
@@ -237,13 +260,15 @@ export default function ROICalculator() {
               <div className="annual-number" style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#c9a84c"}}>R {animRA.toLocaleString("en-ZA")}</div>
             </div>
 
-            <div style={{background:"linear-gradient(135deg,#0f1f2a,#0a1520)",border:"1px solid rgba(64,168,196,0.22)",borderLeft:"4px solid #40a8c4",borderRadius:12,padding:"16px 18px"}}>
-              <div style={{fontSize:10,color:"#40a8c4",letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:10}}>Say this on the call</div>
-              <p style={{fontSize:13,color:"#c8d0d8",lineHeight:1.75,fontStyle:"italic"}}>
-                &quot;Based on your current spend of <strong style={{color:"#fff",fontStyle:"normal"}}>{fmt(monthly)}</strong> per month, we&apos;re typically looking at around <strong style={{color:"#fff",fontStyle:"normal"}}>{fmt(recoverableMonthly)} per month</strong> — that&apos;s <strong style={{color:"#fff",fontStyle:"normal"}}>{fmt(recoverableAnnual)} per year</strong> — that&apos;s potentially being lost and could be recovered.&quot;
-              </p>
-              <div style={{marginTop:9,fontSize:11,color:"#555e6b",fontStyle:"italic"}}>Pause. Let that number land.</div>
-            </div>
+            {!isProspect && (
+              <div style={{background:"linear-gradient(135deg,#0f1f2a,#0a1520)",border:"1px solid rgba(64,168,196,0.22)",borderLeft:"4px solid #40a8c4",borderRadius:12,padding:"16px 18px"}}>
+                <div style={{fontSize:10,color:"#40a8c4",letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:10}}>Say this on the call</div>
+                <p style={{fontSize:13,color:"#c8d0d8",lineHeight:1.75,fontStyle:"italic"}}>
+                  &quot;Based on your current spend of <strong style={{color:"#fff",fontStyle:"normal"}}>{fmt(monthly)}</strong> per month, we&apos;re typically looking at around <strong style={{color:"#fff",fontStyle:"normal"}}>{fmt(recoverableMonthly)} per month</strong> — that&apos;s <strong style={{color:"#fff",fontStyle:"normal"}}>{fmt(recoverableAnnual)} per year</strong> — that&apos;s potentially being lost and could be recovered.&quot;
+                </p>
+                <div style={{marginTop:9,fontSize:11,color:"#555e6b",fontStyle:"italic"}}>Pause. Let that number land.</div>
+              </div>
+            )}
 
             <div className="three-col">
               {[
@@ -267,10 +292,12 @@ export default function ROICalculator() {
                 <span style={{fontSize:13,color:"#8b949e"}}>Payback period</span>
                 <span style={{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:700,color:"#c9a84c"}}>{paybackLabel}</span>
               </div>
-              <div className="divider"/>
-              <div style={{padding:"9px 12px",background:"rgba(64,168,196,0.05)",borderRadius:8,fontSize:12,color:"#8b949e",lineHeight:1.6}}>
-                <strong style={{color:"#40a8c4"}}>Script note: </strong>&quot;That&apos;s typically why most setups fall into a {paybackRange} year payback range — depending on how integrated the system is and how aggressively you optimise.&quot;
-              </div>
+              {!isProspect && <>
+                <div className="divider"/>
+                <div style={{padding:"9px 12px",background:"rgba(64,168,196,0.05)",borderRadius:8,fontSize:12,color:"#8b949e",lineHeight:1.6}}>
+                  <strong style={{color:"#40a8c4"}}>Script note: </strong>&quot;That&apos;s typically why most setups fall into a {paybackRange} year payback range — depending on how integrated the system is and how aggressively you optimise.&quot;
+                </div>
+              </>}
             </div>
 
             <button className="reset-btn" onClick={()=>{setInefficiency(ind.inefficiencyDefault);setRecovery(ind.recoveryDefault);setPayback(ind.paybackDefault);setMonthly(50000);setInputVal("50,000");setInvestment(150000);setInvestmentInput("150,000");}}>
