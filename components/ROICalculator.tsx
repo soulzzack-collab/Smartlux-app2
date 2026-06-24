@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Building2, Hotel, Building, Factory, ShoppingBag, Home } from "lucide-react";
 
 const INDUSTRIES = {
-  general:     { label:"General Commercial",    icon:"🏢", inefficiencyMin:10, inefficiencyMax:40, inefficiencyDefault:20, recoveryMin:40, recoveryMax:70, recoveryDefault:55, paybackDefault:36, insight:"Most commercial facilities waste 20–35% on uncoordinated systems running without occupancy logic." },
-  hospitality: { label:"Boutique Hospitality",  icon:"🏨", inefficiencyMin:30, inefficiencyMax:60, inefficiencyDefault:38, recoveryMin:55, recoveryMax:75, recoveryDefault:65, paybackDefault:24, insight:"Over 40% of hotel energy goes to HVAC alone. Rooms heat and cool 24/7 regardless of occupancy." },
-  offices:     { label:"Offices",               icon:"🏬", inefficiencyMin:15, inefficiencyMax:40, inefficiencyDefault:25, recoveryMin:45, recoveryMax:70, recoveryDefault:58, paybackDefault:30, insight:"Average office wastes 25–35% on after-hours lighting and HVAC running in empty spaces." },
-  industrial:  { label:"Commercial & Industrial",icon:"🏭", inefficiencyMin:15, inefficiencyMax:45, inefficiencyDefault:28, recoveryMin:45, recoveryMax:70, recoveryDefault:60, paybackDefault:36, insight:"Lighting and HVAC are the two biggest costs — and the two systems with the least oversight." },
-  retail:      { label:"Retail & Restaurants",  icon:"🛍️", inefficiencyMin:15, inefficiencyMax:40, inefficiencyDefault:22, recoveryMin:40, recoveryMax:65, recoveryDefault:55, paybackDefault:30, insight:"Energy runs at full capacity during prep and cleaning hours when the space is largely empty." },
-  residential: { label:"Residential",           icon:"🏡", inefficiencyMin:10, inefficiencyMax:40, inefficiencyDefault:18, recoveryMin:40, recoveryMax:65, recoveryDefault:52, paybackDefault:48, insight:"Homes run lighting, climate and security on separate systems with no coordination or occupancy logic." },
+  general:     { label:"General Commercial",    Icon:Building2,   inefficiencyMin:10, inefficiencyMax:40, inefficiencyDefault:20, recoveryMin:40, recoveryMax:70, recoveryDefault:55, paybackDefault:36, insight:"Most commercial facilities waste 20–35% on uncoordinated systems running without occupancy logic." },
+  hospitality: { label:"Boutique Hospitality",  Icon:Hotel,       inefficiencyMin:30, inefficiencyMax:60, inefficiencyDefault:38, recoveryMin:55, recoveryMax:75, recoveryDefault:65, paybackDefault:24, insight:"Over 40% of hotel energy goes to HVAC alone. Rooms heat and cool 24/7 regardless of occupancy." },
+  offices:     { label:"Offices",               Icon:Building,    inefficiencyMin:15, inefficiencyMax:40, inefficiencyDefault:25, recoveryMin:45, recoveryMax:70, recoveryDefault:58, paybackDefault:30, insight:"Average office wastes 25–35% on after-hours lighting and HVAC running in empty spaces." },
+  industrial:  { label:"Commercial & Industrial",Icon:Factory,    inefficiencyMin:15, inefficiencyMax:45, inefficiencyDefault:28, recoveryMin:45, recoveryMax:70, recoveryDefault:60, paybackDefault:36, insight:"Lighting and HVAC are the two biggest costs — and the two systems with the least oversight." },
+  retail:      { label:"Retail & Restaurants",  Icon:ShoppingBag, inefficiencyMin:15, inefficiencyMax:40, inefficiencyDefault:22, recoveryMin:40, recoveryMax:65, recoveryDefault:55, paybackDefault:30, insight:"Energy runs at full capacity during prep and cleaning hours when the space is largely empty." },
+  residential: { label:"Residential",           Icon:Home,        inefficiencyMin:10, inefficiencyMax:40, inefficiencyDefault:18, recoveryMin:40, recoveryMax:65, recoveryDefault:52, paybackDefault:48, insight:"Homes run lighting, climate and security on separate systems with no coordination or occupancy logic." },
 };
 
 const fmt = (n: number) => "R " + Math.round(n).toLocaleString("en-ZA");
@@ -179,7 +180,7 @@ export default function ROICalculator() {
           <div style={{marginBottom:8,fontSize:11,color:"#8b949e",letterSpacing:"1px",textTransform:"uppercase"}}>Select Industry</div>
           <button onClick={()=>setDropOpen(o=>!o)} style={{width:"100%",background:"#161b22",border:`1px solid ${dropOpen?"#40a8c4":"#30363d"}`,borderRadius:10,padding:"13px 16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",color:"#e8eaed",fontFamily:"'DM Sans',sans-serif",fontSize:15,transition:"border-color 0.2s",boxShadow:dropOpen?"0 0 0 3px rgba(64,168,196,0.12)":"none"}}>
             <span style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:19}}>{ind.icon}</span>
+              <ind.Icon size={19} color="#40a8c4" strokeWidth={2} />
               <span style={{fontWeight:600}}>{ind.label}</span>
             </span>
             <span style={{color:"#40a8c4",fontSize:16,display:"inline-block",transform:dropOpen?"rotate(180deg)":"none",transition:"transform 0.2s"}}>&#9662;</span>
@@ -188,7 +189,7 @@ export default function ROICalculator() {
             <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,background:"#161b22",border:"1px solid #30363d",borderRadius:10,padding:8,zIndex:100,boxShadow:"0 16px 40px rgba(0,0,0,0.5)"}}>
               {(Object.entries(INDUSTRIES) as [keyof typeof INDUSTRIES, typeof INDUSTRIES[keyof typeof INDUSTRIES]][]).map(([key,val])=>(
                 <div key={key} className={`drop-item${industryKey===key?" active":""}`} onClick={()=>{setIndustryKey(key);setDropOpen(false);}}>
-                  <span style={{fontSize:17}}>{val.icon}</span>
+                  <val.Icon size={17} color={industryKey===key?"#40a8c4":"#8b949e"} strokeWidth={2} />
                   <span>{val.label}</span>
                   {industryKey===key&&<span style={{marginLeft:"auto",color:"#40a8c4",fontSize:12}}>&#10003;</span>}
                 </div>
